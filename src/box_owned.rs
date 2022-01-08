@@ -28,12 +28,9 @@ where
 
 impl<'a, O, E> BoxOwned<'a, O, &'a mut O, E>
 where
+    O: ?Sized,
     E: EqKind,
 {
-    pub fn new(owner: O) -> Self {
-        Box::new(owner).into()
-    }
-
     pub fn from_box(owner: Box<O>) -> Self {
         owner.into()
     }
@@ -41,48 +38,13 @@ where
 
 impl<'a, O, I, E> BoxOwned<'a, O, I, E>
 where
+    O: ?Sized,
     E: EqKind,
 {
-    pub fn into_any_owner(
-        from: BoxOwned<'a, O, I, E>,
-    ) -> BoxOwned<'a, dyn Any + Send + 'static, I, E>
-    where
-        O: Send + 'static,
-    {
-        let Self { owner, inner, .. } = from;
-
-        BoxOwned {
-            inner,
-            owner,
-            _phantom: PhantomData,
-        }
-    }
-
-    pub fn into_any_owner_local(
-        from: BoxOwned<'a, O, I, E>,
-    ) -> BoxOwned<'a, dyn Any + 'static, I, E>
-    where
-        O: 'static,
-    {
-        let Self { owner, inner, .. } = from;
-
-        BoxOwned {
-            inner,
-            owner,
-            _phantom: PhantomData,
-        }
-    }
-
     pub fn into_box(from: BoxOwned<'a, O, I, E>) -> Box<O> {
         let Self { owner, inner, .. } = from;
         drop(inner);
         owner
-    }
-
-    pub fn into_owner(from: BoxOwned<'a, O, I, E>) -> O {
-        let Self { owner, inner, .. } = from;
-        drop(inner);
-        *owner
     }
 
     pub fn into_arc_owned(from: BoxOwned<'a, O, I, E>) -> ArcOwned<'a, O, I, E> {
@@ -156,8 +118,57 @@ where
     }
 }
 
+impl<'a, O, I, E> BoxOwned<'a, O, I, E>
+where
+    E: EqKind,
+{
+    pub fn new(owner: O) -> Self
+    where
+        Self: From<Box<O>>,
+    {
+        Box::new(owner).into()
+    }
+
+    pub fn into_owner(from: BoxOwned<'a, O, I, E>) -> O {
+        let Self { owner, inner, .. } = from;
+        drop(inner);
+        *owner
+    }
+
+    pub fn into_any_owner(
+        from: BoxOwned<'a, O, I, E>,
+    ) -> BoxOwned<'a, dyn Any + Send + 'static, I, E>
+    where
+        O: Send + 'static,
+    {
+        let Self { owner, inner, .. } = from;
+
+        BoxOwned {
+            inner,
+            owner,
+            _phantom: PhantomData,
+        }
+    }
+
+    pub fn into_any_owner_local(
+        from: BoxOwned<'a, O, I, E>,
+    ) -> BoxOwned<'a, dyn Any + 'static, I, E>
+    where
+        O: 'static,
+    {
+        let Self { owner, inner, .. } = from;
+
+        BoxOwned {
+            inner,
+            owner,
+            _phantom: PhantomData,
+        }
+    }
+}
+
 impl<'a, O, I, E> BoxOwned<'a, O, &'a mut I, E>
 where
+    O: ?Sized,
     E: EqKind,
 {
     pub fn into_box_ref(self) -> BoxRef<'a, O, I, E> {
@@ -183,6 +194,7 @@ where
 
 impl<'a, O, I, E> BoxOwned<'a, O, &'a I, E>
 where
+    O: ?Sized,
     E: EqKind,
 {
     pub fn into_arc_ref(self) -> ArcRef<'a, O, I, E> {
@@ -198,6 +210,7 @@ where
 
 impl<'a, O, I, E> BoxOwned<'a, O, Option<I>, E>
 where
+    O: ?Sized,
     E: EqKind,
 {
     pub fn transpose(self) -> Option<BoxOwned<'a, O, I, E>> {
@@ -212,6 +225,7 @@ where
 
 impl<'a, O, Ok, Err, E> BoxOwned<'a, O, Result<Ok, Err>, E>
 where
+    O: ?Sized,
     E: EqKind,
 {
     pub fn transpose(self) -> Result<BoxOwned<'a, O, Ok, E>, Err> {
@@ -280,6 +294,7 @@ where
 
 impl<'a, O, I, E> Debug for BoxOwned<'a, O, I, E>
 where
+    O: ?Sized,
     I: Debug,
     E: EqKind,
 {
@@ -290,6 +305,7 @@ where
 
 impl<'a, O, I, E> Display for BoxOwned<'a, O, I, E>
 where
+    O: ?Sized,
     I: Display,
     E: EqKind,
 {
@@ -300,6 +316,7 @@ where
 
 impl<'a, O, I> PartialEq<Self> for BoxOwned<'a, O, I, ByContent>
 where
+    O: ?Sized,
     I: PartialEq<I>,
 {
     fn eq(&self, other: &Self) -> bool {
@@ -307,10 +324,16 @@ where
     }
 }
 
-impl<'a, O, I> Eq for BoxOwned<'a, O, I, ByContent> where I: Eq {}
+impl<'a, O, I> Eq for BoxOwned<'a, O, I, ByContent>
+where
+    I: Eq,
+    O: ?Sized,
+{
+}
 
 impl<'a, O, I> PartialOrd<Self> for BoxOwned<'a, O, I, ByContent>
 where
+    O: ?Sized,
     I: PartialOrd<I>,
 {
     fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
@@ -320,6 +343,7 @@ where
 
 impl<'a, O, I> Ord for BoxOwned<'a, O, I, ByContent>
 where
+    O: ?Sized,
     I: Ord,
 {
     fn cmp(&self, other: &Self) -> cmp::Ordering {
@@ -327,41 +351,59 @@ where
     }
 }
 
-impl<'a, O, I> PartialEq<Self> for BoxOwned<'a, O, &'a mut I, ByAddress> {
+impl<'a, O, I> PartialEq<Self> for BoxOwned<'a, O, &'a mut I, ByAddress>
+where
+    O: ?Sized,
+{
     fn eq(&self, other: &Self) -> bool {
         ptr::eq(self.inner as *const I, other.inner as *const I)
     }
 }
 
-impl<'a, O, I> Eq for BoxOwned<'a, O, &'a mut I, ByAddress> {}
+impl<'a, O, I> Eq for BoxOwned<'a, O, &'a mut I, ByAddress> where O: ?Sized {}
 
-impl<'a, O, I> PartialOrd<Self> for BoxOwned<'a, O, &'a mut I, ByAddress> {
+impl<'a, O, I> PartialOrd<Self> for BoxOwned<'a, O, &'a mut I, ByAddress>
+where
+    O: ?Sized,
+{
     fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
         (self.inner as *const I).partial_cmp(&(other.inner as *const I))
     }
 }
 
-impl<'a, O, I> Ord for BoxOwned<'a, O, &'a mut I, ByAddress> {
+impl<'a, O, I> Ord for BoxOwned<'a, O, &'a mut I, ByAddress>
+where
+    O: ?Sized,
+{
     fn cmp(&self, other: &Self) -> cmp::Ordering {
         (self.inner as *const I).cmp(&(other.inner as *const I))
     }
 }
 
-impl<'a, O, I> PartialEq<Self> for BoxOwned<'a, O, &'a I, ByAddress> {
+impl<'a, O, I> PartialEq<Self> for BoxOwned<'a, O, &'a I, ByAddress>
+where
+    O: ?Sized,
+{
     fn eq(&self, other: &Self) -> bool {
         ptr::eq(self.inner as *const I, other.inner as *const I)
     }
 }
 
-impl<'a, O, I> Eq for BoxOwned<'a, O, &'a I, ByAddress> {}
+impl<'a, O, I> Eq for BoxOwned<'a, O, &'a I, ByAddress> where O: ?Sized {}
 
-impl<'a, O, I> PartialOrd<Self> for BoxOwned<'a, O, &'a I, ByAddress> {
+impl<'a, O, I> PartialOrd<Self> for BoxOwned<'a, O, &'a I, ByAddress>
+where
+    O: ?Sized,
+{
     fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
         (self.inner as *const I).partial_cmp(&(other.inner as *const I))
     }
 }
 
-impl<'a, O, I> Ord for BoxOwned<'a, O, &'a I, ByAddress> {
+impl<'a, O, I> Ord for BoxOwned<'a, O, &'a I, ByAddress>
+where
+    O: ?Sized,
+{
     fn cmp(&self, other: &Self) -> cmp::Ordering {
         (self.inner as *const I).cmp(&(other.inner as *const I))
     }
@@ -369,6 +411,7 @@ impl<'a, O, I> Ord for BoxOwned<'a, O, &'a I, ByAddress> {
 
 impl<'a, O, I, E> AsRef<I> for BoxOwned<'a, O, I, E>
 where
+    O: ?Sized,
     E: EqKind,
 {
     fn as_ref(&self) -> &I {
@@ -378,6 +421,7 @@ where
 
 impl<'a, O, I, E> AsMut<I> for BoxOwned<'a, O, I, E>
 where
+    O: ?Sized,
     E: EqKind,
 {
     fn as_mut(&mut self) -> &mut I {
@@ -387,6 +431,7 @@ where
 
 impl<'a, O, I, E> Deref for BoxOwned<'a, O, I, E>
 where
+    O: ?Sized,
     E: EqKind,
 {
     type Target = I;
@@ -398,6 +443,7 @@ where
 
 impl<'a, O, I, E> DerefMut for BoxOwned<'a, O, I, E>
 where
+    O: ?Sized,
     E: EqKind,
 {
     fn deref_mut(&mut self) -> &mut Self::Target {
@@ -407,6 +453,7 @@ where
 
 impl<'a, O, E> From<Box<O>> for BoxOwned<'a, O, &'a mut O, E>
 where
+    O: ?Sized,
     E: EqKind,
 {
     fn from(mut owner: Box<O>) -> Self {
