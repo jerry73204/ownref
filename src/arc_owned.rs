@@ -13,7 +13,7 @@ pub type ArcOwnedA<'a, O, I = O> = ArcOwned<'a, O, I, ByAddress>;
 
 pub struct ArcOwned<'a, O, I, E>
 where
-    O: 'a,
+    O: 'a + ?Sized,
     I: 'a,
     E: EqKind,
 {

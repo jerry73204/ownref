@@ -12,7 +12,7 @@ pub type BoxOwnedA<'a, O, I = O> = BoxOwned<'a, O, I, ByAddress>;
 
 pub struct BoxOwned<'a, O, I, E>
 where
-    O: 'a,
+    O: 'a + ?Sized,
     I: 'a,
     E: EqKind,
 {

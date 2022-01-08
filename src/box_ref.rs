@@ -12,6 +12,8 @@ pub type BoxRefA<'a, O, I = O> = BoxRef<'a, O, I, ByAddress>;
 
 pub struct BoxRef<'a, O, I, E>
 where
+    O: ?Sized,
+    I: ?Sized,
     E: EqKind,
 {
     // inner goes before owner so that inner drops before owner
@@ -96,6 +98,7 @@ where
     pub fn map<T, F>(self, f: F) -> BoxRef<'a, O, T, E>
     where
         F: FnOnce(&'a mut I) -> &'a mut T,
+        T: ?Sized,
     {
         let Self { owner, inner, .. } = self;
 
@@ -109,6 +112,7 @@ where
     pub fn try_map<Ok, Err, F>(self, f: F) -> Result<BoxRef<'a, O, Ok, E>, Err>
     where
         F: FnOnce(&'a mut I) -> Result<&'a mut Ok, Err>,
+        Ok: ?Sized,
     {
         let Self { owner, inner, .. } = self;
 
@@ -122,6 +126,7 @@ where
     pub fn filter_map<T, F>(self, f: F) -> Option<BoxRef<'a, O, T, E>>
     where
         F: FnOnce(&'a mut I) -> Option<&'a mut T>,
+        T: ?Sized,
     {
         let Self { owner, inner, .. } = self;
 

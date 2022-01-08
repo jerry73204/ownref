@@ -13,7 +13,8 @@ pub type ArcRefA<'a, O, I = O> = ArcRef<'a, O, I, ByAddress>;
 
 pub struct ArcRef<'a, O, I, E>
 where
-    O: 'a,
+    O: 'a + ?Sized,
+    I: ?Sized,
     E: EqKind,
 {
     // inner goes before owner so that inner drops before owner
@@ -83,6 +84,7 @@ where
     pub fn map<T, F>(self, f: F) -> ArcRef<'a, O, T, E>
     where
         F: FnOnce(&'a I) -> &'a T,
+        T: ?Sized,
     {
         let Self { owner, inner, .. } = self;
 
@@ -96,6 +98,7 @@ where
     pub fn try_map<Ok, Err, F>(self, f: F) -> Result<ArcRef<'a, O, Ok, E>, Err>
     where
         F: FnOnce(&'a I) -> Result<&'a Ok, Err>,
+        Ok: ?Sized,
     {
         let Self { owner, inner, .. } = self;
 
@@ -109,6 +112,7 @@ where
     pub fn filter_map<T, F>(self, f: F) -> Option<ArcRef<'a, O, T, E>>
     where
         F: FnOnce(&'a I) -> Option<&'a T>,
+        T: ?Sized,
     {
         let Self { owner, inner, .. } = self;
 
@@ -119,10 +123,10 @@ where
         })
     }
 
-    pub fn flatten<T>(self) -> impl IntoIterator<Item = ArcRef<'a, O, T, E>>
+    pub fn flatten<T>(self) -> impl Iterator<Item = ArcRef<'a, O, T, E>>
     where
         &'a I: IntoIterator<Item = &'a T>,
-        T: 'a,
+        T: 'a + ?Sized,
     {
         let Self { owner, inner, .. } = self;
         inner.into_iter().map(move |item| {
@@ -136,11 +140,11 @@ where
         })
     }
 
-    pub fn flat_map<T, C, F>(self, f: F) -> impl IntoIterator<Item = ArcRef<'a, O, T, E>>
+    pub fn flat_map<T, C, F>(self, f: F) -> impl Iterator<Item = ArcRef<'a, O, T, E>>
     where
         F: FnOnce(&'a I) -> C,
         C: IntoIterator<Item = &'a T>,
-        T: 'a,
+        T: 'a + ?Sized,
     {
         let Self { owner, inner, .. } = self;
         let iter = f(inner);
