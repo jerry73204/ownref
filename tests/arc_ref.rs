@@ -1,6 +1,17 @@
 use ownref::{ArcRefA, ArcRefC};
 
 #[test]
+fn arc_ref_a_iter() {
+    let own1 = ArcRefA::new(vec![3, 1, 4]);
+    let refs: Vec<ArcRefA<Vec<usize>, usize>> = own1.flatten().collect();
+
+    assert_eq!(ArcRefA::strong_count(&refs[0]), 3);
+    assert_eq!(*refs[0], 3);
+    assert_eq!(*refs[1], 1);
+    assert_eq!(*refs[2], 4);
+}
+
+#[test]
 fn arc_ref_a_cmp() {
     let own1 = ArcRefA::new(['a', 'a']);
     let own2 = own1.clone();
