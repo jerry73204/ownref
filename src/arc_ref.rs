@@ -24,7 +24,6 @@ where
 
 impl<'a, O, E> ArcRef<'a, O, O, E>
 where
-    O: 'a,
     E: EqKind,
 {
     pub fn new(owner: O) -> Self {
@@ -38,7 +37,6 @@ where
 
 impl<'a, O, I, E> ArcRef<'a, O, I, E>
 where
-    O: 'a,
     E: EqKind,
 {
     pub fn into_arc(from: ArcRef<'a, O, I, E>) -> Arc<O> {
@@ -161,8 +159,6 @@ where
 
 impl<'a, O, I, E> Clone for ArcRef<'a, O, I, E>
 where
-    O: 'a,
-    I: 'a,
     E: EqKind,
 {
     fn clone(&self) -> Self {
@@ -178,7 +174,6 @@ where
 
 impl<'a, O, I, E> Debug for ArcRef<'a, O, I, E>
 where
-    O: 'a,
     I: Debug,
     E: EqKind,
 {
@@ -189,7 +184,6 @@ where
 
 impl<'a, O, I, E> Display for ArcRef<'a, O, I, E>
 where
-    O: 'a,
     I: Display,
     E: EqKind,
 {
@@ -200,7 +194,6 @@ where
 
 impl<'a, O, I> PartialEq<Self> for ArcRef<'a, O, I, ByContent>
 where
-    O: 'a,
     I: PartialEq<I>,
 {
     fn eq(&self, other: &Self) -> bool {
@@ -208,16 +201,10 @@ where
     }
 }
 
-impl<'a, O, I> Eq for ArcRef<'a, O, I, ByContent>
-where
-    O: 'a,
-    I: Eq,
-{
-}
+impl<'a, O, I> Eq for ArcRef<'a, O, I, ByContent> where I: Eq {}
 
 impl<'a, O, I> PartialOrd<Self> for ArcRef<'a, O, I, ByContent>
 where
-    O: 'a,
     I: PartialOrd<I>,
 {
     fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
@@ -227,7 +214,6 @@ where
 
 impl<'a, O, I> Ord for ArcRef<'a, O, I, ByContent>
 where
-    O: 'a,
     I: Ord,
 {
     fn cmp(&self, other: &Self) -> cmp::Ordering {
@@ -235,30 +221,21 @@ where
     }
 }
 
-impl<'a, O, I> PartialEq<Self> for ArcRef<'a, O, I, ByAddress>
-where
-    O: 'a,
-{
+impl<'a, O, I> PartialEq<Self> for ArcRef<'a, O, I, ByAddress> {
     fn eq(&self, other: &Self) -> bool {
         ptr::eq(self.inner as *const I, other.inner as *const I)
     }
 }
 
-impl<'a, O, I> Eq for ArcRef<'a, O, I, ByAddress> where O: 'a {}
+impl<'a, O, I> Eq for ArcRef<'a, O, I, ByAddress> {}
 
-impl<'a, O, I> PartialOrd<Self> for ArcRef<'a, O, I, ByAddress>
-where
-    O: 'a,
-{
+impl<'a, O, I> PartialOrd<Self> for ArcRef<'a, O, I, ByAddress> {
     fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
         (self.inner as *const I).partial_cmp(&(other.inner as *const I))
     }
 }
 
-impl<'a, O, I> Ord for ArcRef<'a, O, I, ByAddress>
-where
-    O: 'a,
-{
+impl<'a, O, I> Ord for ArcRef<'a, O, I, ByAddress> {
     fn cmp(&self, other: &Self) -> cmp::Ordering {
         (self.inner as *const I).cmp(&(other.inner as *const I))
     }
@@ -266,7 +243,6 @@ where
 
 impl<'a, O, I, E> AsRef<I> for ArcRef<'a, O, I, E>
 where
-    O: 'a,
     E: EqKind,
 {
     fn as_ref(&self) -> &I {
@@ -276,7 +252,6 @@ where
 
 impl<'a, O, I, E> Deref for ArcRef<'a, O, I, E>
 where
-    O: 'a,
     E: EqKind,
 {
     type Target = I;
@@ -288,7 +263,6 @@ where
 
 impl<'a, O, E> From<Arc<O>> for ArcRef<'a, O, O, E>
 where
-    O: 'a,
     E: EqKind,
 {
     fn from(owner: Arc<O>) -> Self {

@@ -25,7 +25,6 @@ where
 
 impl<'a, O, E> ArcOwned<'a, O, &'a O, E>
 where
-    O: 'a,
     E: EqKind,
 {
     pub fn new(owner: O) -> Self {
@@ -39,8 +38,6 @@ where
 
 impl<'a, O, I, E> ArcOwned<'a, O, I, E>
 where
-    O: 'a,
-    I: 'a,
     E: EqKind,
 {
     pub fn into_arc(from: ArcOwned<'a, O, I, E>) -> Arc<O> {
@@ -90,7 +87,6 @@ where
     pub fn map<T, F>(self, f: F) -> ArcOwned<'a, O, T, E>
     where
         F: FnOnce(I) -> T,
-        T: 'a,
     {
         let Self { owner, inner, .. } = self;
 
@@ -104,8 +100,6 @@ where
     pub fn try_map<Ok, Err, F>(self, f: F) -> Result<ArcOwned<'a, O, Ok, E>, Err>
     where
         F: FnOnce(I) -> Result<Ok, Err>,
-        Ok: 'a,
-        Err: 'a,
     {
         let Self { owner, inner, .. } = self;
 
@@ -119,7 +113,6 @@ where
     pub fn filter_map<T, F>(self, f: F) -> Option<ArcOwned<'a, O, T, E>>
     where
         F: FnOnce(I) -> Option<T>,
-        T: 'a,
     {
         let Self { owner, inner, .. } = self;
 
@@ -133,8 +126,6 @@ where
     pub fn flatten(self) -> impl IntoIterator<Item = ArcOwned<'a, O, I::Item, E>>
     where
         I: IntoIterator,
-        I::IntoIter: 'a,
-        I::Item: 'a,
     {
         let Self { owner, inner, .. } = self;
         inner.into_iter().map(move |item| {
@@ -152,8 +143,6 @@ where
     where
         F: FnOnce(I) -> T,
         T: 'a + IntoIterator,
-        T::IntoIter: 'a,
-        T::Item: 'a,
     {
         self.map(f).flatten()
     }
@@ -161,8 +150,6 @@ where
 
 impl<'a, O, I, E> ArcOwned<'a, O, &'a I, E>
 where
-    O: 'a,
-    I: 'a,
     E: EqKind,
 {
     pub fn into_arc_ref(this: ArcOwned<'a, O, &'a I, E>) -> ArcRef<'a, O, I, E> {
@@ -178,8 +165,6 @@ where
 
 impl<'a, O, I, E> ArcOwned<'a, O, Option<I>, E>
 where
-    O: 'a,
-    I: 'a,
     E: EqKind,
 {
     pub fn transpose(self) -> Option<ArcOwned<'a, O, I, E>> {
@@ -194,9 +179,6 @@ where
 
 impl<'a, O, Ok, Err, E> ArcOwned<'a, O, Result<Ok, Err>, E>
 where
-    O: 'a,
-    Ok: 'a,
-    Err: 'a,
     E: EqKind,
 {
     pub fn transpose(self) -> Result<ArcOwned<'a, O, Ok, E>, Err> {
@@ -211,8 +193,7 @@ where
 
 impl<'a, O, I, E> Clone for ArcOwned<'a, O, I, E>
 where
-    O: 'a,
-    I: 'a + Clone,
+    I: Clone,
     E: EqKind,
 {
     fn clone(&self) -> Self {
@@ -228,8 +209,7 @@ where
 
 impl<'a, O, I, E> Debug for ArcOwned<'a, O, I, E>
 where
-    O: 'a,
-    I: 'a + Debug,
+    I: Debug,
     E: EqKind,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
@@ -239,8 +219,7 @@ where
 
 impl<'a, O, I, E> Display for ArcOwned<'a, O, I, E>
 where
-    O: 'a,
-    I: 'a + Display,
+    I: Display,
     E: EqKind,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
@@ -250,25 +229,18 @@ where
 
 impl<'a, O, I> PartialEq<Self> for ArcOwned<'a, O, I, ByContent>
 where
-    O: 'a,
-    I: 'a + PartialEq<I>,
+    I: PartialEq<I>,
 {
     fn eq(&self, other: &Self) -> bool {
         self.inner.eq(&other.inner)
     }
 }
 
-impl<'a, O, I> Eq for ArcOwned<'a, O, I, ByContent>
-where
-    O: 'a,
-    I: 'a + Eq,
-{
-}
+impl<'a, O, I> Eq for ArcOwned<'a, O, I, ByContent> where I: Eq {}
 
 impl<'a, O, I> PartialOrd<Self> for ArcOwned<'a, O, I, ByContent>
 where
-    O: 'a,
-    I: 'a + PartialOrd<I>,
+    I: PartialOrd<I>,
 {
     fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
         self.inner.partial_cmp(&other.inner)
@@ -277,46 +249,28 @@ where
 
 impl<'a, O, I> Ord for ArcOwned<'a, O, I, ByContent>
 where
-    O: 'a,
-    I: 'a + Ord,
+    I: Ord,
 {
     fn cmp(&self, other: &Self) -> cmp::Ordering {
         self.inner.cmp(&other.inner)
     }
 }
 
-impl<'a, O, I> PartialEq<Self> for ArcOwned<'a, O, &'a I, ByAddress>
-where
-    O: 'a,
-    I: 'a,
-{
+impl<'a, O, I> PartialEq<Self> for ArcOwned<'a, O, &'a I, ByAddress> {
     fn eq(&self, other: &Self) -> bool {
         ptr::eq(self.inner as *const I, other.inner as *const I)
     }
 }
 
-impl<'a, O, I> Eq for ArcOwned<'a, O, &'a I, ByAddress>
-where
-    O: 'a,
-    I: 'a,
-{
-}
+impl<'a, O, I> Eq for ArcOwned<'a, O, &'a I, ByAddress> {}
 
-impl<'a, O, I> PartialOrd<Self> for ArcOwned<'a, O, &'a I, ByAddress>
-where
-    O: 'a,
-    I: 'a,
-{
+impl<'a, O, I> PartialOrd<Self> for ArcOwned<'a, O, &'a I, ByAddress> {
     fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
         (self.inner as *const I).partial_cmp(&(other.inner as *const I))
     }
 }
 
-impl<'a, O, I> Ord for ArcOwned<'a, O, &'a I, ByAddress>
-where
-    O: 'a,
-    I: 'a,
-{
+impl<'a, O, I> Ord for ArcOwned<'a, O, &'a I, ByAddress> {
     fn cmp(&self, other: &Self) -> cmp::Ordering {
         (self.inner as *const I).cmp(&(other.inner as *const I))
     }
@@ -324,8 +278,6 @@ where
 
 impl<'a, O, I, E> AsRef<I> for ArcOwned<'a, O, I, E>
 where
-    O: 'a,
-    I: 'a,
     E: EqKind,
 {
     fn as_ref(&self) -> &I {
@@ -335,8 +287,6 @@ where
 
 impl<'a, O, I, E> Deref for ArcOwned<'a, O, I, E>
 where
-    O: 'a,
-    I: 'a,
     E: EqKind,
 {
     type Target = I;
@@ -348,7 +298,6 @@ where
 
 impl<'a, O, E> From<Arc<O>> for ArcOwned<'a, O, &'a O, E>
 where
-    O: 'a,
     E: EqKind,
 {
     fn from(owner: Arc<O>) -> Self {

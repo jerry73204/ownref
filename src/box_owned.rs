@@ -24,7 +24,6 @@ where
 
 impl<'a, O, E> BoxOwned<'a, O, &'a mut O, E>
 where
-    O: 'a,
     E: EqKind,
 {
     pub fn new(owner: O) -> Self {
@@ -38,8 +37,6 @@ where
 
 impl<'a, O, I, E> BoxOwned<'a, O, I, E>
 where
-    O: 'a,
-    I: 'a,
     E: EqKind,
 {
     pub fn into_box(from: BoxOwned<'a, O, I, E>) -> Box<O> {
@@ -88,7 +85,6 @@ where
     pub fn map<T, F>(self, f: F) -> BoxOwned<'a, O, T, E>
     where
         F: FnOnce(I) -> T,
-        T: 'a,
     {
         let Self { owner, inner, .. } = self;
 
@@ -102,8 +98,6 @@ where
     pub fn try_map<Ok, Err, F>(self, f: F) -> Result<BoxOwned<'a, O, Ok, E>, Err>
     where
         F: FnOnce(I) -> Result<Ok, Err>,
-        Ok: 'a,
-        Err: 'a,
     {
         let Self { owner, inner, .. } = self;
 
@@ -117,7 +111,6 @@ where
     pub fn filter_map<T, F>(self, f: F) -> Option<BoxOwned<'a, O, T, E>>
     where
         F: FnOnce(I) -> Option<T>,
-        T: 'a,
     {
         let Self { owner, inner, .. } = self;
 
@@ -131,8 +124,6 @@ where
 
 impl<'a, O, I, E> BoxOwned<'a, O, &'a mut I, E>
 where
-    O: 'a,
-    I: 'a,
     E: EqKind,
 {
     pub fn into_box_ref(self) -> BoxRef<'a, O, I, E> {
@@ -158,8 +149,6 @@ where
 
 impl<'a, O, I, E> BoxOwned<'a, O, &'a I, E>
 where
-    O: 'a,
-    I: 'a,
     E: EqKind,
 {
     pub fn into_arc_ref(self) -> ArcRef<'a, O, I, E> {
@@ -175,8 +164,6 @@ where
 
 impl<'a, O, I, E> BoxOwned<'a, O, Option<I>, E>
 where
-    O: 'a,
-    I: 'a,
     E: EqKind,
 {
     pub fn transpose(self) -> Option<BoxOwned<'a, O, I, E>> {
@@ -191,9 +178,6 @@ where
 
 impl<'a, O, Ok, Err, E> BoxOwned<'a, O, Result<Ok, Err>, E>
 where
-    O: 'a,
-    Ok: 'a,
-    Err: 'a,
     E: EqKind,
 {
     pub fn transpose(self) -> Result<BoxOwned<'a, O, Ok, E>, Err> {
@@ -208,8 +192,7 @@ where
 
 impl<'a, O, I, E> Debug for BoxOwned<'a, O, I, E>
 where
-    O: 'a,
-    I: 'a + Debug,
+    I: Debug,
     E: EqKind,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
@@ -219,8 +202,7 @@ where
 
 impl<'a, O, I, E> Display for BoxOwned<'a, O, I, E>
 where
-    O: 'a,
-    I: 'a + Display,
+    I: Display,
     E: EqKind,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
@@ -230,25 +212,18 @@ where
 
 impl<'a, O, I> PartialEq<Self> for BoxOwned<'a, O, I, ByContent>
 where
-    O: 'a,
-    I: 'a + PartialEq<I>,
+    I: PartialEq<I>,
 {
     fn eq(&self, other: &Self) -> bool {
         self.inner.eq(&other.inner)
     }
 }
 
-impl<'a, O, I> Eq for BoxOwned<'a, O, I, ByContent>
-where
-    O: 'a,
-    I: 'a + Eq,
-{
-}
+impl<'a, O, I> Eq for BoxOwned<'a, O, I, ByContent> where I: Eq {}
 
 impl<'a, O, I> PartialOrd<Self> for BoxOwned<'a, O, I, ByContent>
 where
-    O: 'a,
-    I: 'a + PartialOrd<I>,
+    I: PartialOrd<I>,
 {
     fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
         self.inner.partial_cmp(&other.inner)
@@ -257,83 +232,48 @@ where
 
 impl<'a, O, I> Ord for BoxOwned<'a, O, I, ByContent>
 where
-    O: 'a,
-    I: 'a + Ord,
+    I: Ord,
 {
     fn cmp(&self, other: &Self) -> cmp::Ordering {
         self.inner.cmp(&other.inner)
     }
 }
 
-impl<'a, O, I> PartialEq<Self> for BoxOwned<'a, O, &'a mut I, ByAddress>
-where
-    O: 'a,
-    I: 'a,
-{
+impl<'a, O, I> PartialEq<Self> for BoxOwned<'a, O, &'a mut I, ByAddress> {
     fn eq(&self, other: &Self) -> bool {
         ptr::eq(self.inner as *const I, other.inner as *const I)
     }
 }
 
-impl<'a, O, I> Eq for BoxOwned<'a, O, &'a mut I, ByAddress>
-where
-    O: 'a,
-    I: 'a,
-{
-}
+impl<'a, O, I> Eq for BoxOwned<'a, O, &'a mut I, ByAddress> {}
 
-impl<'a, O, I> PartialOrd<Self> for BoxOwned<'a, O, &'a mut I, ByAddress>
-where
-    O: 'a,
-    I: 'a,
-{
+impl<'a, O, I> PartialOrd<Self> for BoxOwned<'a, O, &'a mut I, ByAddress> {
     fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
         (self.inner as *const I).partial_cmp(&(other.inner as *const I))
     }
 }
 
-impl<'a, O, I> Ord for BoxOwned<'a, O, &'a mut I, ByAddress>
-where
-    O: 'a,
-    I: 'a,
-{
+impl<'a, O, I> Ord for BoxOwned<'a, O, &'a mut I, ByAddress> {
     fn cmp(&self, other: &Self) -> cmp::Ordering {
         (self.inner as *const I).cmp(&(other.inner as *const I))
     }
 }
 
-impl<'a, O, I> PartialEq<Self> for BoxOwned<'a, O, &'a I, ByAddress>
-where
-    O: 'a,
-    I: 'a,
-{
+impl<'a, O, I> PartialEq<Self> for BoxOwned<'a, O, &'a I, ByAddress> {
     fn eq(&self, other: &Self) -> bool {
         ptr::eq(self.inner as *const I, other.inner as *const I)
     }
 }
 
-impl<'a, O, I> Eq for BoxOwned<'a, O, &'a I, ByAddress>
-where
-    O: 'a,
-    I: 'a,
-{
-}
+impl<'a, O, I> Eq for BoxOwned<'a, O, &'a I, ByAddress> {}
 
-impl<'a, O, I> PartialOrd<Self> for BoxOwned<'a, O, &'a I, ByAddress>
-where
-    O: 'a,
-    I: 'a,
-{
+impl<'a, O, I> PartialOrd<Self> for BoxOwned<'a, O, &'a I, ByAddress> {
     fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
         (self.inner as *const I).partial_cmp(&(other.inner as *const I))
     }
 }
 
-impl<'a, O, I> Ord for BoxOwned<'a, O, &'a I, ByAddress>
-where
-    O: 'a,
-    I: 'a,
-{
+impl<'a, O, I> Ord for BoxOwned<'a, O, &'a I, ByAddress> {
     fn cmp(&self, other: &Self) -> cmp::Ordering {
         (self.inner as *const I).cmp(&(other.inner as *const I))
     }
@@ -341,8 +281,6 @@ where
 
 impl<'a, O, I, E> AsRef<I> for BoxOwned<'a, O, I, E>
 where
-    O: 'a,
-    I: 'a,
     E: EqKind,
 {
     fn as_ref(&self) -> &I {
@@ -352,8 +290,6 @@ where
 
 impl<'a, O, I, E> AsMut<I> for BoxOwned<'a, O, I, E>
 where
-    O: 'a,
-    I: 'a,
     E: EqKind,
 {
     fn as_mut(&mut self) -> &mut I {
@@ -363,8 +299,6 @@ where
 
 impl<'a, O, I, E> Deref for BoxOwned<'a, O, I, E>
 where
-    O: 'a,
-    I: 'a,
     E: EqKind,
 {
     type Target = I;
@@ -376,8 +310,6 @@ where
 
 impl<'a, O, I, E> DerefMut for BoxOwned<'a, O, I, E>
 where
-    O: 'a,
-    I: 'a,
     E: EqKind,
 {
     fn deref_mut(&mut self) -> &mut Self::Target {
@@ -387,7 +319,6 @@ where
 
 impl<'a, O, E> From<Box<O>> for BoxOwned<'a, O, &'a mut O, E>
 where
-    O: 'a,
     E: EqKind,
 {
     fn from(mut owner: Box<O>) -> Self {

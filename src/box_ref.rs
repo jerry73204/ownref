@@ -12,7 +12,6 @@ pub type BoxRefA<'a, O, I = O> = BoxRef<'a, O, I, ByAddress>;
 
 pub struct BoxRef<'a, O, I, E>
 where
-    O: 'a,
     E: EqKind,
 {
     // inner goes before owner so that inner drops before owner
@@ -23,7 +22,6 @@ where
 
 impl<'a, O, E> BoxRef<'a, O, O, E>
 where
-    O: 'a,
     E: EqKind,
 {
     pub fn new(owner: O) -> Self {
@@ -37,7 +35,6 @@ where
 
 impl<'a, O, I, E> BoxRef<'a, O, I, E>
 where
-    O: 'a,
     E: EqKind,
 {
     pub fn into_box(from: BoxRef<'a, O, I, E>) -> Box<O> {
@@ -138,7 +135,6 @@ where
 
 impl<'a, O, I, E> Debug for BoxRef<'a, O, I, E>
 where
-    O: 'a,
     I: Debug,
     E: EqKind,
 {
@@ -149,7 +145,6 @@ where
 
 impl<'a, O, I, E> Display for BoxRef<'a, O, I, E>
 where
-    O: 'a,
     I: Display,
     E: EqKind,
 {
@@ -160,7 +155,6 @@ where
 
 impl<'a, O, I> PartialEq<Self> for BoxRef<'a, O, I, ByContent>
 where
-    O: 'a,
     I: PartialEq<I>,
 {
     fn eq(&self, other: &Self) -> bool {
@@ -168,16 +162,10 @@ where
     }
 }
 
-impl<'a, O, I> Eq for BoxRef<'a, O, I, ByContent>
-where
-    O: 'a,
-    I: Eq,
-{
-}
+impl<'a, O, I> Eq for BoxRef<'a, O, I, ByContent> where I: Eq {}
 
 impl<'a, O, I> PartialOrd<Self> for BoxRef<'a, O, I, ByContent>
 where
-    O: 'a,
     I: PartialOrd<I>,
 {
     fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
@@ -187,7 +175,6 @@ where
 
 impl<'a, O, I> Ord for BoxRef<'a, O, I, ByContent>
 where
-    O: 'a,
     I: Ord,
 {
     fn cmp(&self, other: &Self) -> cmp::Ordering {
@@ -195,30 +182,21 @@ where
     }
 }
 
-impl<'a, O, I> PartialEq<Self> for BoxRef<'a, O, I, ByAddress>
-where
-    O: 'a,
-{
+impl<'a, O, I> PartialEq<Self> for BoxRef<'a, O, I, ByAddress> {
     fn eq(&self, other: &Self) -> bool {
         ptr::eq(self.inner as *const I, other.inner as *const I)
     }
 }
 
-impl<'a, O, I> Eq for BoxRef<'a, O, I, ByAddress> where O: 'a {}
+impl<'a, O, I> Eq for BoxRef<'a, O, I, ByAddress> {}
 
-impl<'a, O, I> PartialOrd<Self> for BoxRef<'a, O, I, ByAddress>
-where
-    O: 'a,
-{
+impl<'a, O, I> PartialOrd<Self> for BoxRef<'a, O, I, ByAddress> {
     fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
         (self.inner as *const I).partial_cmp(&(other.inner as *const I))
     }
 }
 
-impl<'a, O, I> Ord for BoxRef<'a, O, I, ByAddress>
-where
-    O: 'a,
-{
+impl<'a, O, I> Ord for BoxRef<'a, O, I, ByAddress> {
     fn cmp(&self, other: &Self) -> cmp::Ordering {
         (self.inner as *const I).cmp(&(other.inner as *const I))
     }
@@ -226,7 +204,6 @@ where
 
 impl<'a, O, I, E> AsRef<I> for BoxRef<'a, O, I, E>
 where
-    O: 'a,
     E: EqKind,
 {
     fn as_ref(&self) -> &I {
@@ -236,7 +213,6 @@ where
 
 impl<'a, O, I, E> AsMut<I> for BoxRef<'a, O, I, E>
 where
-    O: 'a,
     E: EqKind,
 {
     fn as_mut(&mut self) -> &mut I {
@@ -246,7 +222,6 @@ where
 
 impl<'a, O, I, E> Deref for BoxRef<'a, O, I, E>
 where
-    O: 'a,
     E: EqKind,
 {
     type Target = I;
@@ -258,7 +233,6 @@ where
 
 impl<'a, O, I, E> DerefMut for BoxRef<'a, O, I, E>
 where
-    O: 'a,
     E: EqKind,
 {
     fn deref_mut(&mut self) -> &mut Self::Target {
@@ -268,7 +242,6 @@ where
 
 impl<'a, O, E> From<Box<O>> for BoxRef<'a, O, O, E>
 where
-    O: 'a,
     E: EqKind,
 {
     fn from(mut owner: Box<O>) -> Self {
