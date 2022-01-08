@@ -1,5 +1,6 @@
 use crate::{arc_owned::ArcOwned, arc_ref::ArcRef, box_owned::BoxOwned, marker::*};
 use std::{
+    any::Any,
     cmp, fmt,
     fmt::{Debug, Display},
     marker::PhantomData,
@@ -9,6 +10,10 @@ use std::{
 
 pub type BoxRefC<'a, O, I = O> = BoxRef<'a, O, I, ByContent>;
 pub type BoxRefA<'a, O, I = O> = BoxRef<'a, O, I, ByAddress>;
+pub type BoxRefAnyC<'a, I> = BoxRef<'a, dyn Any + Send + 'static, I, ByContent>;
+pub type BoxRefAnyA<'a, I> = BoxRef<'a, dyn Any + Send + 'static, I, ByAddress>;
+pub type BoxRefAnyLocalC<'a, I> = BoxRef<'a, dyn Any + 'static, I, ByContent>;
+pub type BoxRefAnyLocalA<'a, I> = BoxRef<'a, dyn Any + 'static, I, ByAddress>;
 
 pub struct BoxRef<'a, O, I, E>
 where
@@ -39,6 +44,32 @@ impl<'a, O, I, E> BoxRef<'a, O, I, E>
 where
     E: EqKind,
 {
+    pub fn into_any_owner(from: BoxRef<'a, O, I, E>) -> BoxRef<'a, dyn Any + Send + 'static, I, E>
+    where
+        O: Send + 'static,
+    {
+        let Self { owner, inner, .. } = from;
+
+        BoxRef {
+            inner,
+            owner,
+            _phantom: PhantomData,
+        }
+    }
+
+    pub fn into_any_owner_local(from: BoxRef<'a, O, I, E>) -> BoxRef<'a, dyn Any + 'static, I, E>
+    where
+        O: 'static,
+    {
+        let Self { owner, inner, .. } = from;
+
+        BoxRef {
+            inner,
+            owner,
+            _phantom: PhantomData,
+        }
+    }
+
     pub fn into_box(from: BoxRef<'a, O, I, E>) -> Box<O> {
         let Self { owner, .. } = from;
         owner
@@ -135,6 +166,60 @@ where
             inner: f(inner)?,
             _phantom: PhantomData,
         })
+    }
+}
+
+impl<'a, I, E> BoxRef<'a, dyn Any + Send + 'static, I, E>
+where
+    E: EqKind,
+{
+    pub fn downcast_owner<O>(
+        this: BoxRef<'a, dyn Any + Send + 'static, I, E>,
+    ) -> Result<BoxRef<'a, O, I, E>, BoxRef<'a, dyn Any + Send + 'static, I, E>>
+    where
+        O: Send + 'static,
+    {
+        let Self { owner, inner, .. } = this;
+
+        match owner.downcast() {
+            Ok(owner) => Ok(BoxRef {
+                owner,
+                inner,
+                _phantom: PhantomData,
+            }),
+            Err(owner) => Err(BoxRef {
+                owner,
+                inner,
+                _phantom: PhantomData,
+            }),
+        }
+    }
+}
+
+impl<'a, I, E> BoxRef<'a, dyn Any + 'static, I, E>
+where
+    E: EqKind,
+{
+    pub fn downcast_owner_local<O>(
+        this: BoxRef<'a, dyn Any + 'static, I, E>,
+    ) -> Result<BoxRef<'a, O, I, E>, BoxRef<'a, dyn Any + 'static, I, E>>
+    where
+        O: 'static,
+    {
+        let Self { owner, inner, .. } = this;
+
+        match owner.downcast() {
+            Ok(owner) => Ok(BoxRef {
+                owner,
+                inner,
+                _phantom: PhantomData,
+            }),
+            Err(owner) => Err(BoxRef {
+                owner,
+                inner,
+                _phantom: PhantomData,
+            }),
+        }
     }
 }
 

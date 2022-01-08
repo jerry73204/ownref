@@ -1,5 +1,6 @@
 use crate::marker::*;
 use std::{
+    any::Any,
     cmp, fmt,
     fmt::{Debug, Display},
     marker::PhantomData,
@@ -10,6 +11,8 @@ use std::{
 
 pub type ArcRefC<'a, O, I = O> = ArcRef<'a, O, I, ByContent>;
 pub type ArcRefA<'a, O, I = O> = ArcRef<'a, O, I, ByAddress>;
+pub type ArcRefAnyC<'a, I> = ArcRef<'a, dyn Any + Send + Sync + 'static, I, ByContent>;
+pub type ArcRefAnyA<'a, I> = ArcRef<'a, dyn Any + Send + Sync + 'static, I, ByAddress>;
 
 pub struct ArcRef<'a, O, I, E>
 where
@@ -40,6 +43,21 @@ impl<'a, O, I, E> ArcRef<'a, O, I, E>
 where
     E: EqKind,
 {
+    pub fn into_any_owner(
+        from: ArcRef<'a, O, I, E>,
+    ) -> ArcRef<'a, dyn Any + Send + Sync + 'static, I, E>
+    where
+        O: Send + Sync + 'static,
+    {
+        let Self { owner, inner, .. } = from;
+
+        ArcRef {
+            inner,
+            owner,
+            _phantom: PhantomData,
+        }
+    }
+
     pub fn into_arc(from: ArcRef<'a, O, I, E>) -> Arc<O> {
         let Self { owner, .. } = from;
         owner
@@ -158,6 +176,33 @@ where
                 _phantom: PhantomData,
             }
         })
+    }
+}
+
+impl<'a, I, E> ArcRef<'a, dyn Any + Send + Sync + 'static, I, E>
+where
+    E: EqKind,
+{
+    pub fn downcast_owner<O>(
+        this: ArcRef<'a, dyn Any + Send + Sync + 'static, I, E>,
+    ) -> Result<ArcRef<'a, O, I, E>, ArcRef<'a, dyn Any + Send + Sync + 'static, I, E>>
+    where
+        O: Send + Sync + 'static,
+    {
+        let Self { owner, inner, .. } = this;
+
+        match owner.downcast() {
+            Ok(owner) => Ok(ArcRef {
+                owner,
+                inner,
+                _phantom: PhantomData,
+            }),
+            Err(owner) => Err(ArcRef {
+                owner,
+                inner,
+                _phantom: PhantomData,
+            }),
+        }
     }
 }
 

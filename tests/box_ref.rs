@@ -1,6 +1,26 @@
 use ownref::{BoxRefA, BoxRefC};
 
 #[test]
+fn box_ref_any_owner() {
+    let x = BoxRefA::new(['a', 'b']);
+    let x = x.map(|array| &mut array[0]);
+    let x = BoxRefA::into_any_owner(x);
+    let _: BoxRefA<[char; 2], _> = BoxRefA::downcast_owner(x)
+        .map_err(|_| ())
+        .expect("unable to downcast");
+}
+
+#[test]
+fn box_ref_any_owner_local() {
+    let x = BoxRefA::new(['a', 'b']);
+    let x = x.map(|array| &mut array[0]);
+    let x = BoxRefA::into_any_owner_local(x);
+    let _: BoxRefA<[char; 2], _> = BoxRefA::downcast_owner_local(x)
+        .map_err(|_| ())
+        .expect("unable to downcast");
+}
+
+#[test]
 fn box_ref_a() {
     let owner = BoxRefA::new(['a', 'b']);
     let _: &[char; 2] = &*owner;

@@ -1,6 +1,16 @@
 use ownref::{ArcOwnedA, ArcOwnedC};
 
 #[test]
+fn arc_owned_any_owner() {
+    let x = ArcOwnedA::new(['a', 'b']);
+    let x = x.map(|array| &array[0]);
+    let x = ArcOwnedA::into_any_owner(x);
+    let _: ArcOwnedA<[char; 2], _> = ArcOwnedA::downcast_owner(x)
+        .map_err(|_| ())
+        .expect("unable to downcast");
+}
+
+#[test]
 fn arc_owned_a_cmp() {
     let own1 = ArcOwnedA::new(['a', 'a']);
     let own2 = own1.clone();

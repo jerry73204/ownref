@@ -1,5 +1,6 @@
 use crate::{arc_ref::ArcRef, marker::*};
 use std::{
+    any::Any,
     cmp, fmt,
     fmt::{Debug, Display},
     marker::PhantomData,
@@ -10,6 +11,8 @@ use std::{
 
 pub type ArcOwnedC<'a, O, I = O> = ArcOwned<'a, O, I, ByContent>;
 pub type ArcOwnedA<'a, O, I = O> = ArcOwned<'a, O, I, ByAddress>;
+pub type ArcOwnedAnyC<'a, I> = ArcOwned<'a, dyn Any + Send + Sync + 'static, I, ByContent>;
+pub type ArcOwnedAnyA<'a, I> = ArcOwned<'a, dyn Any + Send + Sync + 'static, I, ByAddress>;
 
 pub struct ArcOwned<'a, O, I, E>
 where
@@ -39,6 +42,21 @@ impl<'a, O, I, E> ArcOwned<'a, O, I, E>
 where
     E: EqKind,
 {
+    pub fn into_any_owner(
+        from: ArcOwned<'a, O, I, E>,
+    ) -> ArcOwned<'a, dyn Any + Send + Sync + 'static, I, E>
+    where
+        O: Send + Sync + 'static,
+    {
+        let Self { owner, inner, .. } = from;
+
+        ArcOwned {
+            inner,
+            owner,
+            _phantom: PhantomData,
+        }
+    }
+
     pub fn into_arc(from: ArcOwned<'a, O, I, E>) -> Arc<O> {
         let Self { owner, inner, .. } = from;
         drop(inner);
@@ -187,6 +205,33 @@ where
             inner: inner?,
             _phantom: PhantomData,
         })
+    }
+}
+
+impl<'a, I, E> ArcOwned<'a, dyn Any + Send + Sync + 'static, I, E>
+where
+    E: EqKind,
+{
+    pub fn downcast_owner<O>(
+        this: ArcOwned<'a, dyn Any + Send + Sync + 'static, I, E>,
+    ) -> Result<ArcOwned<'a, O, I, E>, ArcOwned<'a, dyn Any + Send + Sync + 'static, I, E>>
+    where
+        O: Send + Sync + 'static,
+    {
+        let Self { owner, inner, .. } = this;
+
+        match owner.downcast() {
+            Ok(owner) => Ok(ArcOwned {
+                owner,
+                inner,
+                _phantom: PhantomData,
+            }),
+            Err(owner) => Err(ArcOwned {
+                owner,
+                inner,
+                _phantom: PhantomData,
+            }),
+        }
     }
 }
 

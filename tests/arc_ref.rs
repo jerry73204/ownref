@@ -1,6 +1,16 @@
 use ownref::{ArcRefA, ArcRefC};
 
 #[test]
+fn arc_ref_any_owner() {
+    let x = ArcRefA::new(['a', 'b']);
+    let x = x.map(|array| &array[0]);
+    let x = ArcRefA::into_any_owner(x);
+    let _: ArcRefA<[char; 2], _> = ArcRefA::downcast_owner(x)
+        .map_err(|_| ())
+        .expect("unable to downcast");
+}
+
+#[test]
 fn arc_ref_a_iter() {
     let own1 = ArcRefA::new(vec![3, 1, 4]);
     let refs: Vec<ArcRefA<Vec<usize>, usize>> = own1.flatten().collect();
