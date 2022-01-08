@@ -13,7 +13,7 @@ pub type ArcRefA<'a, O, I = O> = ArcRef<'a, O, I, ByAddress>;
 
 pub struct ArcRef<'a, O, I, E>
 where
-    O: 'a + ?Sized,
+    O: ?Sized,
     I: ?Sized,
     E: EqKind,
 {

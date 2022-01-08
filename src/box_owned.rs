@@ -12,12 +12,11 @@ pub type BoxOwnedA<'a, O, I = O> = BoxOwned<'a, O, I, ByAddress>;
 
 pub struct BoxOwned<'a, O, I, E>
 where
-    O: 'a + ?Sized,
-    I: 'a,
+    O: ?Sized,
     E: EqKind,
 {
     // inner goes before owner so that inner drops before owner
-    pub(crate) _phantom: PhantomData<(&'a O, E)>,
+    pub(crate) _phantom: PhantomData<(&'a I, E)>,
     pub(crate) inner: I,
     pub(crate) owner: Box<O>,
 }
