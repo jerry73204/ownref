@@ -200,9 +200,7 @@ where
     I: ?Sized,
     E: EqKind,
 {
-    pub fn downcast_owner<O>(
-        this: BoxRef<'a, dyn Any + Send + 'static, I, E>,
-    ) -> Result<BoxRef<'a, O, I, E>, BoxRef<'a, dyn Any + Send + 'static, I, E>>
+    pub fn downcast_owner<O>(this: Self) -> Result<BoxRef<'a, O, I, E>, Self>
     where
         O: Send + 'static,
     {
@@ -228,9 +226,7 @@ where
     I: ?Sized,
     E: EqKind,
 {
-    pub fn downcast_owner_local<O>(
-        this: BoxRef<'a, dyn Any + 'static, I, E>,
-    ) -> Result<BoxRef<'a, O, I, E>, BoxRef<'a, dyn Any + 'static, I, E>>
+    pub fn downcast_owner_local<O>(this: Self) -> Result<BoxRef<'a, O, I, E>, Self>
     where
         O: 'static,
     {

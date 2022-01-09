@@ -257,9 +257,7 @@ impl<'a, I, E> BoxOwned<'a, dyn Any + Send + 'static, I, E>
 where
     E: EqKind,
 {
-    pub fn downcast_owner<O>(
-        this: BoxOwned<'a, dyn Any + Send + 'static, I, E>,
-    ) -> Result<BoxOwned<'a, O, I, E>, BoxOwned<'a, dyn Any + Send + 'static, I, E>>
+    pub fn downcast_owner<O>(this: Self) -> Result<BoxOwned<'a, O, I, E>, Self>
     where
         O: Send + 'static,
     {
@@ -284,9 +282,7 @@ impl<'a, I, E> BoxOwned<'a, dyn Any + 'static, I, E>
 where
     E: EqKind,
 {
-    pub fn downcast_owner_local<O>(
-        this: BoxOwned<'a, dyn Any + 'static, I, E>,
-    ) -> Result<BoxOwned<'a, O, I, E>, BoxOwned<'a, dyn Any + 'static, I, E>>
+    pub fn downcast_owner_local<O>(this: Self) -> Result<BoxOwned<'a, O, I, E>, Self>
     where
         O: 'static,
     {

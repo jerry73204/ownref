@@ -235,9 +235,7 @@ impl<'a, I, E> ArcOwned<'a, dyn Any + Send + Sync + 'static, I, E>
 where
     E: EqKind,
 {
-    pub fn downcast_owner<O>(
-        this: ArcOwned<'a, dyn Any + Send + Sync + 'static, I, E>,
-    ) -> Result<ArcOwned<'a, O, I, E>, ArcOwned<'a, dyn Any + Send + Sync + 'static, I, E>>
+    pub fn downcast_owner<O>(this: Self) -> Result<ArcOwned<'a, O, I, E>, Self>
     where
         O: Send + Sync + 'static,
     {

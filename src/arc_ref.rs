@@ -213,9 +213,7 @@ where
     I: ?Sized,
     E: EqKind,
 {
-    pub fn downcast_owner<O>(
-        this: ArcRef<'a, dyn Any + Send + Sync + 'static, I, E>,
-    ) -> Result<ArcRef<'a, O, I, E>, ArcRef<'a, dyn Any + Send + Sync + 'static, I, E>>
+    pub fn downcast_owner<O>(this: Self) -> Result<ArcRef<'a, O, I, E>, Self>
     where
         O: Send + Sync + 'static,
     {
