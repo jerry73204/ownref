@@ -1,4 +1,4 @@
-use crate::marker::*;
+use crate::{arc_owned::ArcOwned, marker::*};
 use std::{
     any::Any,
     cmp, fmt,
@@ -45,6 +45,15 @@ where
     pub fn into_arc(from: ArcRef<'a, O, I, E>) -> Arc<O> {
         let Self { owner, .. } = from;
         owner
+    }
+
+    pub fn into_arc_owned(this: ArcRef<'a, O, I, E>) -> ArcOwned<'a, O, &'a I, E> {
+        let Self { owner, inner, .. } = this;
+        ArcOwned {
+            inner,
+            owner,
+            _phantom: PhantomData,
+        }
     }
 
     pub fn into_owner_ref(this: ArcRef<'a, O, I, E>) -> ArcRef<'a, O, O, E> {

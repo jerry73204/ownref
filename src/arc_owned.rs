@@ -9,8 +9,8 @@ use std::{
     sync::Arc,
 };
 
-pub type ArcOwnedC<'a, O, I = O> = ArcOwned<'a, O, I, ByContent>;
-pub type ArcOwnedA<'a, O, I = O> = ArcOwned<'a, O, I, ByAddress>;
+pub type ArcOwnedC<'a, O, I = &'a O> = ArcOwned<'a, O, I, ByContent>;
+pub type ArcOwnedA<'a, O, I = &'a O> = ArcOwned<'a, O, I, ByAddress>;
 pub type ArcOwnedAnyC<'a, I> = ArcOwned<'a, dyn Any + Send + Sync + 'static, I, ByContent>;
 pub type ArcOwnedAnyA<'a, I> = ArcOwned<'a, dyn Any + Send + Sync + 'static, I, ByAddress>;
 

@@ -8,8 +8,8 @@ use std::{
     ptr,
 };
 
-pub type BoxOwnedC<'a, O, I = O> = BoxOwned<'a, O, I, ByContent>;
-pub type BoxOwnedA<'a, O, I = O> = BoxOwned<'a, O, I, ByAddress>;
+pub type BoxOwnedC<'a, O, I = &'a O> = BoxOwned<'a, O, I, ByContent>;
+pub type BoxOwnedA<'a, O, I = &'a O> = BoxOwned<'a, O, I, ByAddress>;
 pub type BoxOwnedAnyC<'a, I> = BoxOwned<'a, dyn Any + Send + 'static, I, ByContent>;
 pub type BoxOwnedAnyA<'a, I> = BoxOwned<'a, dyn Any + Send + 'static, I, ByAddress>;
 pub type BoxOwnedAnyLocalC<'a, I> = BoxOwned<'a, dyn Any + 'static, I, ByContent>;
