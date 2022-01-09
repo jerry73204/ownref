@@ -113,7 +113,7 @@ where
         })
     }
 
-    pub fn flatten(self) -> impl IntoIterator<Item = ArcOwned<'a, O, I::Item, E>>
+    pub fn flatten(self) -> impl Iterator<Item = ArcOwned<'a, O, I::Item, E>>
     where
         I: IntoIterator,
     {
@@ -129,7 +129,7 @@ where
         })
     }
 
-    pub fn flat_map<T, F>(self, f: F) -> impl IntoIterator<Item = ArcOwned<'a, O, T::Item, E>>
+    pub fn flat_map<T, F>(self, f: F) -> impl Iterator<Item = ArcOwned<'a, O, T::Item, E>>
     where
         F: FnOnce(I) -> T,
         T: 'a + IntoIterator,
