@@ -3,6 +3,7 @@ use std::{
     any::Any,
     cmp, fmt,
     fmt::{Debug, Display},
+    hash::{Hash, Hasher},
     marker::PhantomData,
     ops::{Deref, DerefMut},
     ptr,
@@ -365,6 +366,19 @@ where
     }
 }
 
+impl<'a, O, I> Hash for BoxOwned<'a, O, I, ByContent>
+where
+    O: ?Sized,
+    I: Hash,
+{
+    fn hash<H>(&self, state: &mut H)
+    where
+        H: Hasher,
+    {
+        self.inner.hash(state);
+    }
+}
+
 impl<'a, O, I> PartialEq<Self> for BoxOwned<'a, O, &'a mut I, ByAddress>
 where
     O: ?Sized,
@@ -402,6 +416,19 @@ where
     }
 }
 
+impl<'a, O, I> Hash for BoxOwned<'a, O, &'a mut I, ByAddress>
+where
+    O: ?Sized,
+    I: ?Sized,
+{
+    fn hash<H>(&self, state: &mut H)
+    where
+        H: Hasher,
+    {
+        ptr::hash(self.inner as *const I, state);
+    }
+}
+
 impl<'a, O, I> PartialEq<Self> for BoxOwned<'a, O, &'a I, ByAddress>
 where
     O: ?Sized,
@@ -436,6 +463,19 @@ where
 {
     fn cmp(&self, other: &Self) -> cmp::Ordering {
         (self.inner as *const I).cmp(&(other.inner as *const I))
+    }
+}
+
+impl<'a, O, I> Hash for BoxOwned<'a, O, &'a I, ByAddress>
+where
+    O: ?Sized,
+    I: ?Sized,
+{
+    fn hash<H>(&self, state: &mut H)
+    where
+        H: Hasher,
+    {
+        ptr::hash(self.inner as *const I, state);
     }
 }
 
