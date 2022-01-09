@@ -9,11 +9,19 @@ use std::{
     sync::Arc,
 };
 
+/// Content ordered owned data bundled with an owner in [Arc].
 pub type ArcOwnedC<'a, O, I = &'a O> = ArcOwned<'a, O, I, ByContent>;
+
+/// Pointer address ordered owned data bundled with an owner in [Arc].
 pub type ArcOwnedA<'a, O, I = &'a O> = ArcOwned<'a, O, I, ByAddress>;
+
+/// Content ordered owned data bundled with an [Any] owner in [Arc].
 pub type ArcOwnedAnyC<'a, I> = ArcOwned<'a, dyn Any + Send + Sync + 'static, I, ByContent>;
+
+/// Pointer address ordered owned data bundled with an [Any] owner in [Arc].
 pub type ArcOwnedAnyA<'a, I> = ArcOwned<'a, dyn Any + Send + Sync + 'static, I, ByAddress>;
 
+/// Owned data bundled with an owner in [Arc].
 pub struct ArcOwned<'a, O, I, E>
 where
     O: ?Sized,

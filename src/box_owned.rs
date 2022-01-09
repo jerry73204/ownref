@@ -8,13 +8,25 @@ use std::{
     ptr,
 };
 
+/// Content ordered owned data bundled with an owner in [Box].
 pub type BoxOwnedC<'a, O, I = &'a mut O> = BoxOwned<'a, O, I, ByContent>;
+
+/// Pointer address ordered owned data bundled with an owner in [Box].
 pub type BoxOwnedA<'a, O, I = &'a mut O> = BoxOwned<'a, O, I, ByAddress>;
+
+/// Content ordered owned data bundled with an [Any] + [Send] owner in [Box].
 pub type BoxOwnedAnyC<'a, I> = BoxOwned<'a, dyn Any + Send + 'static, I, ByContent>;
+
+/// Pointer address ordered owned data bundled with an [Any] + [Send] owner in [Box].
 pub type BoxOwnedAnyA<'a, I> = BoxOwned<'a, dyn Any + Send + 'static, I, ByAddress>;
+
+/// Content ordered owned data bundled with an [Any] owner in [Box].
 pub type BoxOwnedAnyLocalC<'a, I> = BoxOwned<'a, dyn Any + 'static, I, ByContent>;
+
+/// Pointer address ordered owned data bundled with an [Any] owner in [Box].
 pub type BoxOwnedAnyLocalA<'a, I> = BoxOwned<'a, dyn Any + 'static, I, ByAddress>;
 
+/// Owned data bundled with an owner in [Box].
 pub struct BoxOwned<'a, O, I, E>
 where
     O: ?Sized,

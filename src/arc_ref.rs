@@ -9,11 +9,19 @@ use std::{
     sync::Arc,
 };
 
+/// Content ordered reference to data within an owner in [Arc].
 pub type ArcRefC<'a, O, I = O> = ArcRef<'a, O, I, ByContent>;
+
+/// Pointer address ordered reference to data within an owner in [Arc].
 pub type ArcRefA<'a, O, I = O> = ArcRef<'a, O, I, ByAddress>;
+
+/// Content ordered reference to data within an [Any] owner in [Arc].
 pub type ArcRefAnyC<'a, I> = ArcRef<'a, dyn Any + Send + Sync + 'static, I, ByContent>;
+
+/// Pointer address ordered reference to data within an [Any] owner in [Arc].
 pub type ArcRefAnyA<'a, I> = ArcRef<'a, dyn Any + Send + Sync + 'static, I, ByAddress>;
 
+/// Reference to data within an owner in [Arc].
 pub struct ArcRef<'a, O, I, E>
 where
     O: ?Sized,

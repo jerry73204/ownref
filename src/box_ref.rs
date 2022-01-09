@@ -8,13 +8,25 @@ use std::{
     ptr,
 };
 
+/// Content ordered reference to data within an owner in [Box].
 pub type BoxRefC<'a, O, I = O> = BoxRef<'a, O, I, ByContent>;
+
+/// Pointer address ordered reference to data within an owner in [Box].
 pub type BoxRefA<'a, O, I = O> = BoxRef<'a, O, I, ByAddress>;
+
+/// Content ordered reference to data within an [Any] + [Send] owner in [Box].
 pub type BoxRefAnyC<'a, I> = BoxRef<'a, dyn Any + Send + 'static, I, ByContent>;
+
+/// Pointer address ordered reference to data within an [Any] + [Send] owner in [Box].
 pub type BoxRefAnyA<'a, I> = BoxRef<'a, dyn Any + Send + 'static, I, ByAddress>;
+
+/// Content ordered reference to data within an [Any] owner in [Box].
 pub type BoxRefAnyLocalC<'a, I> = BoxRef<'a, dyn Any + 'static, I, ByContent>;
+
+/// Pointer address ordered reference to data within an [Any] owner in [Box].
 pub type BoxRefAnyLocalA<'a, I> = BoxRef<'a, dyn Any + 'static, I, ByAddress>;
 
+/// Reference to data within an owner in [Box].
 pub struct BoxRef<'a, O, I, E>
 where
     O: ?Sized,
