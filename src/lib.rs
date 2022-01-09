@@ -132,6 +132,33 @@
 //! assert!(ref1 == ref2); // equalized by content
 //! ```
 //!
+//! # Iterator flattening
+//!
+//! [ArcRef] is able to flatten the referenced data if the data type can be turned into an iterator.
+//! For example, it can turn a reference to a vec into a vec of element references.
+//!
+//! ```
+//! # use ownref::ArcRefC;
+//! let vec: ArcRefC<Vec<char>> = ArcRefC::new(vec!['a', 'b', 'c']);
+//! let collected: Vec<ArcRefC<Vec<char>, char>> = vec.flatten().collect();
+//! ```
+//!
+//! [ArcOwned] is more versatile. It can flatten a map to references to its keys, values
+//! or key-value pairs.
+//!
+//! ```
+//! # use ownref::ArcOwnedC;
+//! # use indexmap::IndexMap;
+//! let map: IndexMap<_, _> = [('a', 1), ('b', 2), ('c', 3)].into_iter().collect();
+//! let own: ArcOwnedC<_> = ArcOwnedC::new(map);
+//!
+//! let pairs: Vec<ArcOwnedC<_, (&char, &usize)>> =
+//!     own.clone().flat_map(|map| map.iter()).collect();
+//! let keys: Vec<ArcOwnedC<_, &char>> = own.clone().flat_map(|map| map.keys()).collect();
+//! let values: Vec<ArcOwnedC<_, &usize>> = own.flat_map(|map| map.values()).collect();
+//! ```
+//!
+//!
 //! # Owner erasure
 //!
 //! The owner type can forget the owner type and keeps the data reference.
