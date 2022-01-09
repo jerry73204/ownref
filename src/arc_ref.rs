@@ -198,13 +198,22 @@ where
         }
     }
 
-    pub fn try_unwrap_owner(from: ArcRef<'a, O, I, E>) -> Option<O> {
-        let Self { owner, .. } = from;
-        Arc::try_unwrap(owner).ok()
+    pub fn try_unwrap_owner(from: ArcRef<'a, O, I, E>) -> Result<O, Self> {
+        let Self { owner, inner, .. } = from;
+
+        match Arc::try_unwrap(owner) {
+            Ok(owner) => Ok(owner),
+            Err(owner) => Err(Self {
+                owner,
+                inner,
+                _phantom: PhantomData,
+            }),
+        }
     }
 
     pub fn unwrap_owner(from: ArcRef<'a, O, I, E>) -> O {
-        Self::try_unwrap_owner(from).unwrap()
+        Self::try_unwrap_owner(from)
+            .unwrap_or_else(|_| panic!("unable to unwrap because strong count is greater than 1"))
     }
 }
 
