@@ -1,6 +1,7 @@
 use crate::{arc_owned::ArcOwned, arc_ref::ArcRef, box_ref::BoxRef, marker::*};
 use std::{
     any::Any,
+    borrow::Borrow,
     cmp, fmt,
     fmt::{Debug, Display},
     hash::{Hash, Hasher},
@@ -511,6 +512,16 @@ where
 {
     fn as_mut(&mut self) -> &mut I {
         self.deref_mut()
+    }
+}
+
+impl<'a, O, I, E> Borrow<I> for BoxOwned<'a, O, I, E>
+where
+    O: ?Sized,
+    E: EqKind,
+{
+    fn borrow(&self) -> &I {
+        self.deref()
     }
 }
 

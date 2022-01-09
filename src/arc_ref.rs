@@ -1,6 +1,7 @@
 use crate::{arc_owned::ArcOwned, marker::*};
 use std::{
     any::Any,
+    borrow::Borrow,
     cmp, fmt,
     fmt::{Debug, Display},
     hash::{Hash, Hasher},
@@ -416,6 +417,17 @@ where
     E: EqKind,
 {
     fn as_ref(&self) -> &I {
+        self.deref()
+    }
+}
+
+impl<'a, O, I, E> Borrow<I> for ArcRef<'a, O, I, E>
+where
+    O: ?Sized,
+    I: ?Sized,
+    E: EqKind,
+{
+    fn borrow(&self) -> &I {
         self.deref()
     }
 }

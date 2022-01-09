@@ -1,4 +1,11 @@
 use ownref::{ArcRefA, ArcRefC};
+use std::collections::HashSet;
+
+#[test]
+fn arc_ref_borrow() {
+    let set: HashSet<ArcRefC<_, char>> = ArcRefC::new(['a', 'b', 'c']).flatten().collect();
+    assert!(set.contains(&'a'));
+}
 
 #[test]
 fn arc_ref_any_owner() {

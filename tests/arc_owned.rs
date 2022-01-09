@@ -1,5 +1,12 @@
 use indexmap::IndexMap;
 use ownref::{ArcOwnedA, ArcOwnedC};
+use std::collections::HashSet;
+
+#[test]
+fn arc_owned_borrow() {
+    let set: HashSet<ArcOwnedC<_, &char>> = ArcOwnedC::new(['a', 'b', 'c']).flatten().collect();
+    assert!(set.contains(&&'a'));
+}
 
 #[test]
 fn arc_owned_any_owner() {
