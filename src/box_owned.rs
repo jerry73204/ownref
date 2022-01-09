@@ -169,6 +169,7 @@ where
 impl<'a, O, I, E> BoxOwned<'a, O, &'a mut I, E>
 where
     O: ?Sized,
+    I: ?Sized,
     E: EqKind,
 {
     pub fn into_box_ref(self) -> BoxRef<'a, O, I, E> {
@@ -195,6 +196,7 @@ where
 impl<'a, O, I, E> BoxOwned<'a, O, &'a I, E>
 where
     O: ?Sized,
+    I: ?Sized,
     E: EqKind,
 {
     pub fn into_arc_ref(self) -> ArcRef<'a, O, I, E> {
@@ -354,17 +356,24 @@ where
 impl<'a, O, I> PartialEq<Self> for BoxOwned<'a, O, &'a mut I, ByAddress>
 where
     O: ?Sized,
+    I: ?Sized,
 {
     fn eq(&self, other: &Self) -> bool {
         ptr::eq(self.inner as *const I, other.inner as *const I)
     }
 }
 
-impl<'a, O, I> Eq for BoxOwned<'a, O, &'a mut I, ByAddress> where O: ?Sized {}
+impl<'a, O, I> Eq for BoxOwned<'a, O, &'a mut I, ByAddress>
+where
+    O: ?Sized,
+    I: ?Sized,
+{
+}
 
 impl<'a, O, I> PartialOrd<Self> for BoxOwned<'a, O, &'a mut I, ByAddress>
 where
     O: ?Sized,
+    I: ?Sized,
 {
     fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
         (self.inner as *const I).partial_cmp(&(other.inner as *const I))
@@ -374,6 +383,7 @@ where
 impl<'a, O, I> Ord for BoxOwned<'a, O, &'a mut I, ByAddress>
 where
     O: ?Sized,
+    I: ?Sized,
 {
     fn cmp(&self, other: &Self) -> cmp::Ordering {
         (self.inner as *const I).cmp(&(other.inner as *const I))
@@ -383,17 +393,24 @@ where
 impl<'a, O, I> PartialEq<Self> for BoxOwned<'a, O, &'a I, ByAddress>
 where
     O: ?Sized,
+    I: ?Sized,
 {
     fn eq(&self, other: &Self) -> bool {
         ptr::eq(self.inner as *const I, other.inner as *const I)
     }
 }
 
-impl<'a, O, I> Eq for BoxOwned<'a, O, &'a I, ByAddress> where O: ?Sized {}
+impl<'a, O, I> Eq for BoxOwned<'a, O, &'a I, ByAddress>
+where
+    O: ?Sized,
+    I: ?Sized,
+{
+}
 
 impl<'a, O, I> PartialOrd<Self> for BoxOwned<'a, O, &'a I, ByAddress>
 where
     O: ?Sized,
+    I: ?Sized,
 {
     fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
         (self.inner as *const I).partial_cmp(&(other.inner as *const I))
@@ -403,6 +420,7 @@ where
 impl<'a, O, I> Ord for BoxOwned<'a, O, &'a I, ByAddress>
 where
     O: ?Sized,
+    I: ?Sized,
 {
     fn cmp(&self, other: &Self) -> cmp::Ordering {
         (self.inner as *const I).cmp(&(other.inner as *const I))

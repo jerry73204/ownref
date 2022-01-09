@@ -178,6 +178,7 @@ where
 impl<'a, O, I, E> ArcOwned<'a, O, &'a I, E>
 where
     O: ?Sized,
+    I: ?Sized,
     E: EqKind,
 {
     pub fn into_arc_ref(this: ArcOwned<'a, O, &'a I, E>) -> ArcRef<'a, O, I, E> {
@@ -327,17 +328,24 @@ where
 impl<'a, O, I> PartialEq<Self> for ArcOwned<'a, O, &'a I, ByAddress>
 where
     O: ?Sized,
+    I: ?Sized,
 {
     fn eq(&self, other: &Self) -> bool {
         ptr::eq(self.inner as *const I, other.inner as *const I)
     }
 }
 
-impl<'a, O, I> Eq for ArcOwned<'a, O, &'a I, ByAddress> where O: ?Sized {}
+impl<'a, O, I> Eq for ArcOwned<'a, O, &'a I, ByAddress>
+where
+    O: ?Sized,
+    I: ?Sized,
+{
+}
 
 impl<'a, O, I> PartialOrd<Self> for ArcOwned<'a, O, &'a I, ByAddress>
 where
     O: ?Sized,
+    I: ?Sized,
 {
     fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
         (self.inner as *const I).partial_cmp(&(other.inner as *const I))
@@ -347,6 +355,7 @@ where
 impl<'a, O, I> Ord for ArcOwned<'a, O, &'a I, ByAddress>
 where
     O: ?Sized,
+    I: ?Sized,
 {
     fn cmp(&self, other: &Self) -> cmp::Ordering {
         (self.inner as *const I).cmp(&(other.inner as *const I))
