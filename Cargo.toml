@@ -1,6 +1,6 @@
 [package]
 name = "ownref"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 description = "Provide the smart pointer type that bundles the data with its owner."
 categories = ["rust-patterns"]
