@@ -11,3 +11,6 @@ readme = "README.md"
 license = "MIT"
 
 [dependencies]
+
+[dev-dependencies]
+indexmap = "1.8.0"
