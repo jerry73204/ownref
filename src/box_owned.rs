@@ -44,6 +44,7 @@ where
     O: ?Sized,
     E: EqKind,
 {
+    /// Build from boxed data.
     pub fn from_box(owner: Box<O>) -> Self {
         owner.into()
     }
@@ -54,12 +55,14 @@ where
     O: ?Sized,
     E: EqKind,
 {
+    /// Discard owned data and return boxed owner.
     pub fn into_box(from: BoxOwned<'a, O, I, E>) -> Box<O> {
         let Self { owner, inner, .. } = from;
         drop(inner);
         owner
     }
 
+    /// Convert to [ArcOwned] without re-allocation.
     pub fn into_arc_owned(from: BoxOwned<'a, O, I, E>) -> ArcOwned<'a, O, I, E> {
         let Self { owner, inner, .. } = from;
         ArcOwned {
@@ -69,6 +72,7 @@ where
         }
     }
 
+    /// Reset data to the reference to owner.
     pub fn into_owner_ref(this: BoxOwned<'a, O, I, E>) -> BoxOwned<'a, O, &mut O, E> {
         let Self {
             mut owner, inner, ..
@@ -87,10 +91,12 @@ where
         }
     }
 
+    /// Get the reference to owner.
     pub fn owner(this: &'a BoxOwned<'a, O, I, E>) -> &'a O {
         &this.owner
     }
 
+    /// Applies function `f` to data.
     pub fn map<T, F>(self, f: F) -> BoxOwned<'a, O, T, E>
     where
         F: FnOnce(I) -> T,
@@ -104,6 +110,7 @@ where
         }
     }
 
+    /// Applies fallible function `f` to data.
     pub fn try_map<Ok, Err, F>(self, f: F) -> Result<BoxOwned<'a, O, Ok, E>, Err>
     where
         F: FnOnce(I) -> Result<Ok, Err>,
@@ -117,6 +124,7 @@ where
         })
     }
 
+    /// Applies function `f` that returns optional value to data.
     pub fn filter_map<T, F>(self, f: F) -> Option<BoxOwned<'a, O, T, E>>
     where
         F: FnOnce(I) -> Option<T>,
@@ -135,6 +143,7 @@ impl<'a, O, I, E> BoxOwned<'a, O, I, E>
 where
     E: EqKind,
 {
+    /// Build from an owner.
     pub fn new(owner: O) -> Self
     where
         Self: From<Box<O>>,
@@ -142,12 +151,14 @@ where
         Box::new(owner).into()
     }
 
+    /// Discard the data and return the owner.
     pub fn into_owner(from: BoxOwned<'a, O, I, E>) -> O {
         let Self { owner, inner, .. } = from;
         drop(inner);
         *owner
     }
 
+    /// Change the owner type to [Any] + [Send] trait object.
     pub fn into_any_owner(
         from: BoxOwned<'a, O, I, E>,
     ) -> BoxOwned<'a, dyn Any + Send + 'static, I, E>
@@ -163,6 +174,7 @@ where
         }
     }
 
+    /// Change the owner type to [Any] trait object.
     pub fn into_any_owner_local(
         from: BoxOwned<'a, O, I, E>,
     ) -> BoxOwned<'a, dyn Any + 'static, I, E>
@@ -185,6 +197,7 @@ where
     I: ?Sized,
     E: EqKind,
 {
+    /// Convert to [BoxRef].
     pub fn into_box_ref(self) -> BoxRef<'a, O, I, E> {
         let Self { owner, inner, .. } = self;
 
@@ -195,6 +208,7 @@ where
         }
     }
 
+    /// Convert to [ArcRef].
     pub fn into_arc_ref(self) -> ArcRef<'a, O, I, E> {
         let Self { owner, inner, .. } = self;
 
@@ -212,6 +226,7 @@ where
     I: ?Sized,
     E: EqKind,
 {
+    /// Convert to [ArcRef].
     pub fn into_arc_ref(self) -> ArcRef<'a, O, I, E> {
         let Self { owner, inner, .. } = self;
 
@@ -228,6 +243,7 @@ where
     O: ?Sized,
     E: EqKind,
 {
+    /// Transpose an [BoxOwned] of a [Option] to a [Option] of an [BoxOwned].
     pub fn transpose(self) -> Option<BoxOwned<'a, O, I, E>> {
         let Self { owner, inner, .. } = self;
         Some(BoxOwned {
@@ -243,6 +259,7 @@ where
     O: ?Sized,
     E: EqKind,
 {
+    /// Transpose an [BoxOwned] of a [Result] to a [Result] of an [BoxOwned].
     pub fn transpose(self) -> Result<BoxOwned<'a, O, Ok, E>, Err> {
         let Self { owner, inner, .. } = self;
         Ok(BoxOwned {
@@ -257,6 +274,7 @@ impl<'a, I, E> BoxOwned<'a, dyn Any + Send + 'static, I, E>
 where
     E: EqKind,
 {
+    /// Downcast the [Any] + [Send] trait object owner to concrete type.
     pub fn downcast_owner<O>(this: Self) -> Result<BoxOwned<'a, O, I, E>, Self>
     where
         O: Send + 'static,
@@ -282,6 +300,7 @@ impl<'a, I, E> BoxOwned<'a, dyn Any + 'static, I, E>
 where
     E: EqKind,
 {
+    /// Downcast the [Any] trait object owner to concrete type.
     pub fn downcast_owner_local<O>(this: Self) -> Result<BoxOwned<'a, O, I, E>, Self>
     where
         O: 'static,

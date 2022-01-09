@@ -45,6 +45,7 @@ where
     O: ?Sized,
     E: EqKind,
 {
+    /// Build from boxed data.
     pub fn from_box(owner: Box<O>) -> Self {
         owner.into()
     }
@@ -54,6 +55,7 @@ impl<'a, O, E> BoxRef<'a, O, O, E>
 where
     E: EqKind,
 {
+    /// Build from owner.
     pub fn new(owner: O) -> Self {
         Box::new(owner).into()
     }
@@ -65,11 +67,13 @@ where
     I: ?Sized,
     E: EqKind,
 {
+    /// Discard the inner reference and return boxed owner.
     pub fn into_box(from: BoxRef<'a, O, I, E>) -> Box<O> {
         let Self { owner, .. } = from;
         owner
     }
 
+    /// Convert to [BoxOwned].
     pub fn into_box_owned(from: BoxRef<'a, O, I, E>) -> BoxOwned<'a, O, &mut I, E> {
         let Self { owner, inner, .. } = from;
         BoxOwned {
@@ -79,6 +83,7 @@ where
         }
     }
 
+    /// Convert to [ArcOwned] without re-allocation.
     pub fn into_arc_owned(from: BoxRef<'a, O, I, E>) -> ArcOwned<'a, O, &'a mut I, E> {
         let Self { owner, inner, .. } = from;
         ArcOwned {
@@ -88,6 +93,7 @@ where
         }
     }
 
+    /// Convert to [ArcRef] without re-allocation.
     pub fn into_arc_ref(from: BoxRef<'a, O, I, E>) -> ArcRef<'a, O, I, E> {
         let Self { owner, inner, .. } = from;
         ArcRef {
@@ -97,6 +103,7 @@ where
         }
     }
 
+    /// Reset the inner reference to the reference to owner.
     pub fn into_owner_ref(this: BoxRef<'a, O, I, E>) -> BoxRef<'a, O, O, E> {
         let Self { mut owner, .. } = this;
 
@@ -112,10 +119,12 @@ where
         }
     }
 
+    /// Get the reference to the owner.
     pub fn owner(this: &'a BoxRef<'a, O, I, E>) -> &'a O {
         &this.owner
     }
 
+    /// Applies function `f` to inner reference.
     pub fn map<T, F>(self, f: F) -> BoxRef<'a, O, T, E>
     where
         F: FnOnce(&'a mut I) -> &'a mut T,
@@ -130,6 +139,7 @@ where
         }
     }
 
+    /// Applies fallible function `f` to inner reference.
     pub fn try_map<Ok, Err, F>(self, f: F) -> Result<BoxRef<'a, O, Ok, E>, Err>
     where
         F: FnOnce(&'a mut I) -> Result<&'a mut Ok, Err>,
@@ -144,6 +154,7 @@ where
         })
     }
 
+    /// Applies function `f` that returns optional reference to inner reference.
     pub fn filter_map<T, F>(self, f: F) -> Option<BoxRef<'a, O, T, E>>
     where
         F: FnOnce(&'a mut I) -> Option<&'a mut T>,
@@ -163,11 +174,13 @@ impl<'a, O, I, E> BoxRef<'a, O, I, E>
 where
     E: EqKind,
 {
+    /// Discard the inner reference and return the owner.
     pub fn into_owner(from: BoxRef<'a, O, I, E>) -> O {
         let Self { owner, .. } = from;
         *owner
     }
 
+    /// Change the owner type to [Any] + [Send] trait object.
     pub fn into_any_owner(from: BoxRef<'a, O, I, E>) -> BoxRef<'a, dyn Any + Send + 'static, I, E>
     where
         O: Send + 'static,
@@ -181,6 +194,7 @@ where
         }
     }
 
+    /// Change the owner type to [Any] trait object.
     pub fn into_any_owner_local(from: BoxRef<'a, O, I, E>) -> BoxRef<'a, dyn Any + 'static, I, E>
     where
         O: 'static,
@@ -200,6 +214,7 @@ where
     I: ?Sized,
     E: EqKind,
 {
+    /// Downcast the [Any] + [Send] trait object owner to concrete type.
     pub fn downcast_owner<O>(this: Self) -> Result<BoxRef<'a, O, I, E>, Self>
     where
         O: Send + 'static,
@@ -226,6 +241,7 @@ where
     I: ?Sized,
     E: EqKind,
 {
+    /// Downcast the [Any] trait object owner to concrete type.
     pub fn downcast_owner_local<O>(this: Self) -> Result<BoxRef<'a, O, I, E>, Self>
     where
         O: 'static,

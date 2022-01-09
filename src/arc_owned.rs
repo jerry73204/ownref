@@ -49,12 +49,14 @@ where
     O: ?Sized,
     E: EqKind,
 {
+    /// Discard data and return owner in [Arc].
     pub fn into_arc(from: ArcOwned<'a, O, I, E>) -> Arc<O> {
         let Self { owner, inner, .. } = from;
         drop(inner);
         owner
     }
 
+    /// Reset data to reference to owner.
     pub fn into_owner_ref(this: ArcOwned<'a, O, I, E>) -> ArcOwned<'a, O, &O, E> {
         let Self { owner, inner, .. } = this;
         drop(inner);
@@ -71,18 +73,22 @@ where
         }
     }
 
+    /// Get reference to owner.
     pub fn owner(this: &'a ArcOwned<'a, O, I, E>) -> &'a O {
         &this.owner
     }
 
+    /// Get strong count on owner.
     pub fn strong_count(this: &ArcOwned<'a, O, I, E>) -> usize {
         Arc::strong_count(&this.owner)
     }
 
+    /// Get weak count on owner.
     pub fn weak_count(this: &ArcOwned<'a, O, I, E>) -> usize {
         Arc::weak_count(&this.owner)
     }
 
+    /// Applies function `f` to data.
     pub fn map<T, F>(self, f: F) -> ArcOwned<'a, O, T, E>
     where
         F: FnOnce(I) -> T,
@@ -96,6 +102,7 @@ where
         }
     }
 
+    /// Applies fallible function `f` to data.
     pub fn try_map<Ok, Err, F>(self, f: F) -> Result<ArcOwned<'a, O, Ok, E>, Err>
     where
         F: FnOnce(I) -> Result<Ok, Err>,
@@ -109,6 +116,7 @@ where
         })
     }
 
+    /// Applies function `f` that returns optional value to data.
     pub fn filter_map<T, F>(self, f: F) -> Option<ArcOwned<'a, O, T, E>>
     where
         F: FnOnce(I) -> Option<T>,
@@ -122,6 +130,7 @@ where
         })
     }
 
+    /// Flatten the wrapped iterable data into an iterator of wrapped items.
     pub fn flatten(self) -> impl Iterator<Item = ArcOwned<'a, O, I::Item, E>>
     where
         I: IntoIterator,
@@ -138,6 +147,7 @@ where
         })
     }
 
+    /// Apply fucntion `f` to get an iterable type, and flatten it to an iterator of wrapped items.
     pub fn flat_map<T, F>(self, f: F) -> impl Iterator<Item = ArcOwned<'a, O, T::Item, E>>
     where
         F: FnOnce(I) -> T,
@@ -151,6 +161,7 @@ impl<'a, O, I, E> ArcOwned<'a, O, I, E>
 where
     E: EqKind,
 {
+    /// Build from an owner.
     pub fn new(owner: O) -> Self
     where
         Self: From<Arc<O>>,
@@ -158,6 +169,7 @@ where
         Arc::new(owner).into()
     }
 
+    /// Change the owner type to [Any] trait object.
     pub fn into_any_owner(
         from: ArcOwned<'a, O, I, E>,
     ) -> ArcOwned<'a, dyn Any + Send + Sync + 'static, I, E>
@@ -173,6 +185,7 @@ where
         }
     }
 
+    /// Unwrap the owner if strong count is one.
     pub fn try_unwrap_owner(from: ArcOwned<'a, O, I, E>) -> Result<O, Self> {
         let Self { owner, inner, .. } = from;
 
@@ -186,6 +199,10 @@ where
         }
     }
 
+    /// Unwrap the owner and panic if strong count is one.
+    ///
+    /// # Panic
+    /// The method panics if strong count is not 1.
     pub fn unwrap_owner(from: ArcOwned<'a, O, I, E>) -> O {
         Self::try_unwrap_owner(from)
             .unwrap_or_else(|_| panic!("unable to unwrap because strong count is greater than 1"))
@@ -198,6 +215,7 @@ where
     I: ?Sized,
     E: EqKind,
 {
+    /// Convert ot [ArcRef].
     pub fn into_arc_ref(this: ArcOwned<'a, O, &'a I, E>) -> ArcRef<'a, O, I, E> {
         let Self { owner, inner, .. } = this;
 
@@ -214,6 +232,7 @@ where
     O: ?Sized,
     E: EqKind,
 {
+    /// Transpose an [ArcOwned] of an [Option] to an [Option] of an [ArcOwned].
     pub fn transpose(self) -> Option<ArcOwned<'a, O, I, E>> {
         let Self { owner, inner, .. } = self;
         Some(ArcOwned {
@@ -229,6 +248,7 @@ where
     O: ?Sized,
     E: EqKind,
 {
+    /// Transpose an [ArcOwned] of a [Result] to a [Result] of an [ArcOwned].
     pub fn transpose(self) -> Result<ArcOwned<'a, O, Ok, E>, Err> {
         let Self { owner, inner, .. } = self;
         Ok(ArcOwned {
@@ -243,6 +263,7 @@ impl<'a, I, E> ArcOwned<'a, dyn Any + Send + Sync + 'static, I, E>
 where
     E: EqKind,
 {
+    /// Downcast the [Any]-trait object owner to concrete type.
     pub fn downcast_owner<O>(this: Self) -> Result<ArcOwned<'a, O, I, E>, Self>
     where
         O: Send + Sync + 'static,
@@ -270,6 +291,7 @@ where
     I: Clone,
     E: EqKind,
 {
+    /// Clone the data and increase reference count to owner.
     fn clone(&self) -> Self {
         let Self { owner, inner, .. } = self;
 

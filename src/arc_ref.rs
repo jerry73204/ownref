@@ -40,6 +40,7 @@ where
     O: ?Sized,
     E: EqKind,
 {
+    /// Build from owner data in [Arc].
     pub fn from_arc(owner: Arc<O>) -> Self {
         owner.into()
     }
@@ -51,11 +52,13 @@ where
     I: ?Sized,
     E: EqKind,
 {
+    /// Discard the inner reference and return the owner in [Arc].
     pub fn into_arc(from: ArcRef<'a, O, I, E>) -> Arc<O> {
         let Self { owner, .. } = from;
         owner
     }
 
+    /// Convert to [ArcOwned].
     pub fn into_arc_owned(this: ArcRef<'a, O, I, E>) -> ArcOwned<'a, O, &'a I, E> {
         let Self { owner, inner, .. } = this;
         ArcOwned {
@@ -65,6 +68,7 @@ where
         }
     }
 
+    /// Reset the inner reference to the owner.
     pub fn into_owner_ref(this: ArcRef<'a, O, I, E>) -> ArcRef<'a, O, O, E> {
         let Self { owner, .. } = this;
 
@@ -80,18 +84,22 @@ where
         }
     }
 
+    /// Get the reference to the owner.
     pub fn owner(this: &'a ArcRef<'a, O, I, E>) -> &'a O {
         &this.owner
     }
 
+    /// Get the strong count on the owner.
     pub fn strong_count(this: &ArcRef<'a, O, I, E>) -> usize {
         Arc::strong_count(&this.owner)
     }
 
+    /// Get the weak count on the owner.
     pub fn weak_count(this: &ArcRef<'a, O, I, E>) -> usize {
         Arc::weak_count(&this.owner)
     }
 
+    /// Apply function `f` to the inner reference.
     pub fn map<T, F>(self, f: F) -> ArcRef<'a, O, T, E>
     where
         F: FnOnce(&'a I) -> &'a T,
@@ -106,6 +114,7 @@ where
         }
     }
 
+    /// Apply fallible function `f` to the inner reference.
     pub fn try_map<Ok, Err, F>(self, f: F) -> Result<ArcRef<'a, O, Ok, E>, Err>
     where
         F: FnOnce(&'a I) -> Result<&'a Ok, Err>,
@@ -120,6 +129,7 @@ where
         })
     }
 
+    /// Apply function `f` that returns an optional reference to the inner reference.
     pub fn filter_map<T, F>(self, f: F) -> Option<ArcRef<'a, O, T, E>>
     where
         F: FnOnce(&'a I) -> Option<&'a T>,
@@ -134,6 +144,7 @@ where
         })
     }
 
+    /// Flatten the wrapped iterable inner reference into an iterator of wrapped items.
     pub fn flatten<T>(self) -> impl Iterator<Item = ArcRef<'a, O, T, E>>
     where
         &'a I: IntoIterator<Item = &'a T>,
@@ -151,6 +162,7 @@ where
         })
     }
 
+    /// Apply fucntion `f` to get an iterable type, and flatten it to an iterator of references.
     pub fn flat_map<T, C, F>(self, f: F) -> impl Iterator<Item = ArcRef<'a, O, T, E>>
     where
         F: FnOnce(&'a I) -> C,
@@ -176,6 +188,7 @@ impl<'a, O, I, E> ArcRef<'a, O, I, E>
 where
     E: EqKind,
 {
+    /// Build from an owner.
     pub fn new(owner: O) -> Self
     where
         Self: From<Arc<O>>,
@@ -183,6 +196,7 @@ where
         Arc::new(owner).into()
     }
 
+    /// Convert the owner type to [Any] trait object.
     pub fn into_any_owner(
         from: ArcRef<'a, O, I, E>,
     ) -> ArcRef<'a, dyn Any + Send + Sync + 'static, I, E>
@@ -198,6 +212,7 @@ where
         }
     }
 
+    /// Unwrap the owner if strong count is one.
     pub fn try_unwrap_owner(from: ArcRef<'a, O, I, E>) -> Result<O, Self> {
         let Self { owner, inner, .. } = from;
 
@@ -211,6 +226,10 @@ where
         }
     }
 
+    /// Unwrap the owner and panic if strong count is one.
+    ///
+    /// # Panic
+    /// The method panics if strong count is not 1.
     pub fn unwrap_owner(from: ArcRef<'a, O, I, E>) -> O {
         Self::try_unwrap_owner(from)
             .unwrap_or_else(|_| panic!("unable to unwrap because strong count is greater than 1"))
@@ -222,6 +241,7 @@ where
     I: ?Sized,
     E: EqKind,
 {
+    /// Downcast the [Any]-trait object owner to concrete type.
     pub fn downcast_owner<O>(this: Self) -> Result<ArcRef<'a, O, I, E>, Self>
     where
         O: Send + Sync + 'static,
@@ -249,6 +269,7 @@ where
     I: ?Sized,
     E: EqKind,
 {
+    /// Copy the inner reference and increase reference count to owner.
     fn clone(&self) -> Self {
         let Self { owner, inner, .. } = self;
 
