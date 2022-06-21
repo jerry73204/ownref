@@ -4,6 +4,7 @@ use std::{
     borrow::Borrow,
     cmp, fmt,
     fmt::{Debug, Display},
+    future::Future,
     hash::{Hash, Hasher},
     marker::PhantomData,
     ops::Deref,
@@ -117,6 +118,22 @@ where
         })
     }
 
+    /// Applies fallible function `f` to data.
+    pub async fn try_then<Ok, Err, F, Fut>(self, f: F) -> Result<ArcOwned<'a, O, Ok, E>, Err>
+    where
+        Ok: 'a,
+        F: FnOnce(I) -> Fut,
+        Fut: Future<Output = Result<Ok, Err>>,
+    {
+        let Self { owner, inner, .. } = self;
+
+        Ok(ArcOwned {
+            owner,
+            inner: f(inner).await?,
+            _phantom: PhantomData,
+        })
+    }
+
     /// Applies function `f` that returns optional value to data.
     pub fn filter_map<T, F>(self, f: F) -> Option<ArcOwned<'a, O, T, E>>
     where
@@ -127,6 +144,22 @@ where
         Some(ArcOwned {
             owner,
             inner: f(inner)?,
+            _phantom: PhantomData,
+        })
+    }
+
+    /// Applies function `f` that returns optional value to data.
+    pub async fn filter_then<T, F, Fut>(self, f: F) -> Option<ArcOwned<'a, O, T, E>>
+    where
+        T: 'a,
+        F: FnOnce(I) -> Fut,
+        Fut: Future<Output = Option<T>>,
+    {
+        let Self { owner, inner, .. } = self;
+
+        Some(ArcOwned {
+            owner,
+            inner: f(inner).await?,
             _phantom: PhantomData,
         })
     }
